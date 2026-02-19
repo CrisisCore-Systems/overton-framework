@@ -2,6 +2,14 @@
 
 This folder is a lightweight repository layout for the Overton Framework materials.
 
+## Status
+
+See [STATUS.md](STATUS.md). In short: the Canon is normative/scope-locked; the Companion is fast-moving guidance.
+
+## Feedback
+
+- Please use GitHub Issues for feedback, errata, and critique.
+
 ## Structure
 
 - `canon/`
@@ -10,6 +18,10 @@ This folder is a lightweight repository layout for the Overton Framework materia
   - Fast-moving implementation & evidence guidance that operationalizes the Canon into concrete controls and artifacts.
 - `evidence/`
   - Generated evidence packets / run outputs.
+
+## License
+
+CC BY 4.0. See [LICENSE.md](LICENSE.md).
 
 ## Notes
 
