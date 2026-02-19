@@ -32,7 +32,7 @@ author:
 bibliography: overton-framework-protective-computing-v1.3.bib
 date: |
   February 2026  
-  Version 1.3 — Canon (Scope-Locked Draft)
+  Version 1.3 — Canon (Scope-Locked)
 title: |
   **THE OVERTON FRAMEWORK**  
   A Canon for Protective Computing in Conditions of Human Vulnerability
