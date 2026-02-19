@@ -1,0 +1,16 @@
+# Evidence packets / run outputs (can contain sensitive artifacts)
+evidence/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# LaTeX / build outputs (if you place sources in canon/ or companion/)
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+*.synctex.gz
