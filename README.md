@@ -10,6 +10,8 @@ See [STATUS.md](STATUS.md). In short: the Canon is normative/scope-locked; the C
 
 - Please use GitHub Issues for feedback, errata, and critique.
 
+For coercion- or safety-sensitive issues, please report privately per `SECURITY.md`.
+
 ## Structure
 
 - `canon/`
@@ -22,6 +24,10 @@ See [STATUS.md](STATUS.md). In short: the Canon is normative/scope-locked; the C
 ## License
 
 CC BY 4.0. See [LICENSE.md](LICENSE.md).
+
+## Contributing
+
+See `CONTRIBUTING.md`.
 
 ## Notes
 

@@ -1,0 +1,581 @@
+\documentclass[acmsmall,review]{acmart}
+
+\settopmatter{printacmref=true}
+
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{booktabs}
+
+\begin{document}
+
+\title{Protective Computing: An Architectural Framework for Safety-Critical Systems Under Conditions of Human Vulnerability}
+
+\author{K.\ Overton}
+\affiliation{%
+    \institution{Independent Researcher}
+    \city{Kelowna}
+    \state{BC}
+    \country{Canada}
+}
+
+% Abstract
+\begin{abstract}
+The Stability Assumption---that users enjoy continuous connectivity, cognitive surplus, environmental safety, and institutional trust---has silently governed software architecture for three decades. This paper argues that this assumption is structurally incompatible with the material conditions of the 2020s, where a growing proportion of human-computer interaction occurs under vulnerability: medical crisis, environmental disaster, coercion, and precarity. We introduce Protective Computing, a systems-engineering orientation that inverts conventional priorities, mandating safety, containment, reversibility, and utility over growth and engagement. The framework formalizes Stability Bias as a function of dependency, vulnerability, and irreversibility ($H = f(D, V, I)$); defines a Vulnerability State Machine ($S_0$--$S_3$); and specifies five normative design principles using RFC-style keywords. We demonstrate technical feasibility through a reference implementation (PainTracker), yielding a Protective Legitimacy Score in the protective range (presented as an illustrative calculation; independent audit pending). We conclude with implications for HCI, digital medicine, and law, arguing that software architecture has become a determinant of human safety and requires corresponding evaluation standards.
+\end{abstract}
+
+% CCS Concepts (required)
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10003120.10003121.10003123.10011758</concept_id>
+<concept_desc>Human-centered computing~HCI theory, concepts and models</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10003033.10003079.10003084</concept_id>
+<concept_desc>Networks~Network reliability</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+<concept>
+<concept_id>10003752.10003753.10003757</concept_id>
+<concept_desc>Security and privacy~Human and societal aspects of security and privacy</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Human-centered computing~HCI theory, concepts and models}
+\ccsdesc[300]{Networks~Network reliability}
+\ccsdesc[500]{Security and privacy~Human and societal aspects of security and privacy}
+
+\keywords{Protective Computing; Stability Bias; Vulnerability States; Local-First Architecture; Client-Side Encryption; Digital Iatrogenesis; Human-Computer Interaction; Safety-Critical Systems; Coercion Resistance; Data Sovereignty}
+
+\maketitle
+
+\section{Introduction}
+
+Consider a patient in acute pain attempting to verify medication history through a mobile application. The application requires network connectivity to authenticate---but the hospital's Wi-Fi is down. Consider a survivor of domestic abuse whose device is monitored by a hostile partner; a lock-screen notification reveals appointment details with a shelter. Consider a displaced person after a flood, with intermittent power and connectivity, attempting to access digital identification to receive aid.
+
+In each case, software designed for stable conditions fails not gracefully, but harmfully. These are not edge cases. They are structurally recurrent states of human experience that reveal a fundamental flaw in the architectural logic of modern computing.
+
+\subsection{The Stability Assumption}
+
+The foundational logic of modern software architecture emerged between 1995 and 2015, a period of exceptional infrastructural optimism. Driven by commercial imperatives, engineering standards converged around three priorities: connectivity, synchronization, and data accumulation. Over time, these priorities hardened into a silent but pervasive architectural doctrine: the Stability Assumption.
+
+This assumption presumes a default user operating within a bounded envelope defined by four conditions:
+
+\begin{itemize}
+    \item \textbf{Continuous connectivity:} reliable, high-speed network access
+    \item \textbf{Cognitive surplus:} sufficient executive function to manage permissions and authentication
+    \item \textbf{Environmental safety:} physical security free from surveillance or coercion
+    \item \textbf{Institutional trust:} a working belief that platforms function as neutral intermediaries
+\end{itemize}
+
+For nearly three decades, these conditions have been treated as constants. When systems fail outside this envelope, the failure is rarely attributed to architecture. The system is described as "offline," the user as "non-compliant."
+
+\subsection{The Legitimacy Gap}
+
+This stability-centric model is increasingly incompatible with the material conditions of human life. A growing proportion of human-computer interaction now occurs outside the Stability Envelope: medical crisis, environmental disaster, coercive environments, socioeconomic precarity.
+
+When stability-centric systems encounter vulnerability, they do not merely degrade---they amplify harm. A network-dependent smart lock that cannot disengage during a power outage traps occupants. A cloud-first medical journal that denies access when a user cannot recall credentials during an emergency creates clinical risk.
+
+This divergence constitutes a Legitimacy Gap: software that requires stability to function becomes ethically illegitimate when applied to domains of health, safety, or legal survival. We propose Protective Computing as a corrective discipline---an engineering orientation in which the system's primary obligation is the preservation of agency, dignity, and safety under conditions of collapse.
+
+\subsection{Contributions}
+
+This paper makes six contributions:
+
+\begin{enumerate}
+    \item A formal model of Stability Bias and the Vulnerability State Machine
+    \item A taxonomy of protective failures based on human harm, not technical cause
+    \item Five normative design principles for Protective Computing, specified with RFC-style keywords
+    \item A reference implementation (PainTracker) demonstrating technical feasibility
+    \item The Protective Legitimacy Score (PLS), a proposed metric for comparative evaluation (provisional and illustrative)
+    \item Implications for HCI, digital medicine, and law, with a research agenda for the field
+\end{enumerate}
+
+\section{Related Work}
+
+Any proposal for a new engineering orientation must locate itself within existing intellectual traditions. Protective Computing emerges from, and synthesizes, four established lines of inquiry while advancing a distinct claim that reorganizes them. This section situates the framework within safety-critical HCI, value-sensitive design and privacy-by-design, resilience engineering and local-first architecture, and technology-facilitated abuse research. We then articulate the delta: where prior work treats vulnerability as a special case, Protective Computing treats it as the default condition for evaluation.
+
+\subsection{Safety-Critical HCI}
+
+Human-Computer Interaction has long recognized safety as a design constraint in domains where failure produces catastrophic consequences. Foundational work in aviation cockpit automation established that interface design must anticipate and mitigate operator error under stress \cite{Wiener1988,Reason1990}. Nuclear control room studies demonstrated that system transparency and error recovery mechanisms are not optional but essential for preventing disaster \cite{Woods2006}. Healthcare HCI has extended these insights to clinical settings, showing that medication administration systems and electronic health records must function reliably even when users are fatigued, distracted, or under time pressure \cite{Kushniruk2001,Patel2017}.
+
+The core insight of this tradition---that interface design must accommodate degraded human performance---informs our Principle 4 (Cognitive Load Preservation). However, safety-critical HCI has historically focused on trained operators in controlled environments: pilots with thousands of hours of experience, nuclear technicians who undergo regular simulation training, clinicians working within institutional protocols. These are not the general population under conditions of precarity, coercion, or infrastructural collapse.
+
+Protective Computing extends safety-critical HCI in three ways. First, it addresses untrained users who cannot be assumed to possess domain expertise. Second, it considers environments where the infrastructure itself is failing, not merely the operator. Third, it formalizes vulnerability as a state variable rather than a static characteristic, enabling systems to adapt as users transition between conditions. In this sense, Protective Computing applies the rigor of safety-critical engineering to contexts that have historically been served by consumer-grade software.
+
+\subsection{Value-Sensitive Design and Privacy-by-Design}
+
+Value-sensitive design (VSD) provides methodologies for embedding ethical considerations into technical systems from the outset. Friedman and colleagues established that values can be operationalized as system requirements through iterative investigation of human contexts, conceptual analysis of value tensions, and technical implementation of value-based constraints \cite{Friedman2006,Friedman2019}. Subsequent work has applied VSD to domains including privacy in ubiquitous computing \cite{Shilton2013}, informed consent in data collection \cite{Obar2020}, and autonomy in assistive technologies \cite{vanWynsberghe2015}.
+
+Privacy-by-design, articulated by Cavoukian and extended by regulatory frameworks including the GDPR, translates similar commitments into engineering practice \cite{Cavoukian2009,EuropeanParliament2016}. The seven foundational principles---proactive not reactive, privacy as default, privacy embedded into design, full functionality, end-to-end security, visibility and transparency, and user-centricity---have influenced everything from system architecture to data protection law \cite{Rubinstein2020}. More recent work has examined the limits of privacy-by-design in contexts of asymmetric power, arguing that consent mechanisms fail when users cannot meaningfully refuse \cite{Gurses2018,Richards2023}.
+
+Protective Computing adopts the VSD stance that values can be operationalized as system requirements, while specifying a particular value hierarchy: safety and sovereignty outweigh convenience and engagement. Where VSD asks which values to embed and how to balance competing values, Protective Computing argues that vulnerability fundamentally reorders value priorities. A system optimized for convenience in stable conditions becomes harmful in crisis; the hierarchy must invert. This is not a rejection of VSD but a context-specific instantiation of its methodology.
+
+Similarly, privacy-by-design establishes that systems should minimize data collection and empower users. Protective Computing extends this by mandating client-side encryption and local-first authority, transforming privacy from a compliance exercise into a structural guarantee. The framework also addresses a gap in privacy-by-design: the assumption that users can exercise meaningful choice. Under vulnerability states ($S_2$, $S_3$), this assumption fails, and systems must protect users from their own compromised agency.
+
+\subsection{Resilience Engineering and Local-First Architecture}
+
+Resilience engineering studies how systems maintain function under disruption. Hollnagel and colleagues distinguished Safety-I (preventing things from going wrong) from Safety-II (ensuring things go right), arguing that resilience requires systems to adapt to unexpected conditions rather than merely resist failure \cite{Hollnagel2006,Hollnagel2014}. Woods extended this by defining resilience as the capacity to anticipate, monitor, respond to, and learn from disruptions \cite{Woods2015}. In safety-critical domains, resilience is not a performance characteristic but a survival requirement.
+
+Parallel technical movements have demonstrated that network independence is architecturally achievable. Offline-first and local-first software architectures prioritize local authority over cloud dependency, using techniques including embedded databases, CRDTs (Conflict-Free Replicated Data Types), and peer-to-peer synchronization \cite{Hughes2015,Shapiro2011,OBeirne2018}. Kleppmann and colleagues articulated the local-first manifesto: users own their data, network failures do not block work, and synchronization occurs transparently when connectivity permits \cite{Kleppmann2019}. These approaches have been implemented in production systems ranging from collaborative editors to personal information management tools \cite{Gruntz2016,Hegeman2022}.
+
+Protective Computing unifies resilience engineering and local-first architecture through an ethical lens. Resilience is not merely desirable but morally obligatory when failure produces human harm. Local-first architecture is not merely a technical preference but a structural requirement for systems operating in vulnerability contexts. Where prior work treated resilience as a performance metric and local-first as a design pattern, Protective Computing treats them as duties owed to users who cannot afford network dependency. The framework provides the normative justification for adopting these technical approaches in safety-critical domains.
+
+\subsection{Technology-Facilitated Abuse and Digital Safety Research}
+
+A growing body of work examines how digital systems enable coercion, stalking, and surveillance. Freed and colleagues conducted qualitative studies with survivors of intimate partner violence, documenting how smartphones and connected devices become tools of abuse \cite{Freed2018,Freed2019}. Matthews and colleagues analyzed how "stalking apps" exploit operating system permissions and cloud synchronization to monitor victims without consent \cite{Matthews2021}. Levy and colleagues examined the legal frameworks that fail to protect survivors when technology companies resist disclosure or design systems that preserve evidence of abuse \cite{Levy2020,Tsukayama2022}.
+
+This research documents the failure modes we classify as Type II (Involuntary Exposure) and Type IV (Coercive Compliance). Lock-screen notifications that reveal sensitive appointments, location sharing that cannot be disabled without detection, authentication mechanisms that assume physical safety---these are not edge cases but recurring harms documented across multiple studies \cite{Chatfield2023,Dell2023}. Digital safety researchers have called for architectural interventions, arguing that privacy and security cannot be achieved through user education alone when systems are designed for surveillance by default \cite{Stark2020}.
+
+Protective Computing provides an architectural framework for addressing these harms systematically. Rather than treating technology-facilitated abuse as a problem to be mitigated through post-hoc patches or user warnings, the framework embeds coercion resistance into the system's foundation. Duress codes, plausible deniability storage, and local-first authority are not features added after the fact but structural guarantees that anticipate adversarial conditions. The framework translates empirical findings from digital safety research into engineering requirements, closing the gap between documentation of harm and prevention of harm.
+
+\subsection{The Delta: Vulnerability as Default}
+
+Where prior work treats vulnerability as a special case---a scenario to be accommodated within systems designed for stability---Protective Computing inverts the default. This inversion is not merely semantic but structural: it reorganizes design priorities, evaluation criteria, and architectural choices.
+
+Safety-critical HCI assumes trained operators in controlled environments. Value-sensitive design asks which values to embed but does not specify a hierarchy for vulnerability. Resilience engineering treats adaptation as a performance characteristic. Local-first architecture demonstrates technical feasibility without ethical mandate. Technology-facilitated abuse research documents harm without providing architectural solutions.
+
+Protective Computing synthesizes these traditions while advancing a distinct claim: vulnerability is not an edge condition but a structurally recurrent human state, and architecture must be evaluated primarily by its behavior when stability degrades. This yields a new organizing principle: software's legitimacy in safety-critical domains is determined not by its performance under ideal conditions, but by its capacity to preserve agency and dignity when those conditions fail.
+
+The framework does not claim to supersede these traditions. Rather, it builds upon them, extracting insights from each and integrating them into a coherent orientation for designing under vulnerability. Safety-critical HCI provides the rigor; VSD provides the methodology; resilience engineering provides the systems perspective; local-first architecture provides the technical patterns; digital safety research provides the empirical grounding. Protective Computing is the synthesis that makes these traditions legible as a unified engineering discipline.
+
+\section{Formal Model: Stability Bias and Vulnerability States}
+
+\subsection{Systemic Definition of Harm}
+\label{sec:stability-bias}
+
+In safety-critical engineering, risk is traditionally expressed as the product of probability and consequence. Protective Computing extends this formulation by incorporating the dynamic state of the user as a primary variable. We model Total Harm ($H$) in a digital interaction as:
+
+\[
+H = f(D, V, I)
+\]
+
+Where:
+
+\begin{itemize}
+    \item \textbf{D --- System Dependency:} The degree to which the user relies on the system for immediate biological survival, legal protection, or preservation of irreplaceable data
+    \item \textbf{V --- User Vulnerability:} The momentary reduction in user agency caused by degradation of environmental stability, cognitive capacity, or power autonomy
+    \item \textbf{I --- Outcome Irreversibility:} The permanence of a negative system outcome (e.g., transient lockout versus irreversible data destruction)
+\end{itemize}
+
+The functional form is intentionally abstract; operationalization of $D$, $V$, and $I$ requires domain-specific calibration and empirical study. Different application contexts will require different measurement approaches, and the relationships between these variables may be non-linear. This formulation is offered as a conceptual framework for analysis rather than a predictive equation.
+
+\subsection{Formal Definition: Stability Bias}
+
+Stability Bias exists when an architecture exhibits high $D$ and high $I$ while implicitly assuming $V \to 0$. Under this condition, any sudden increase in $V$ produces catastrophic escalation of $H$, transforming routine system failure into human harm.
+
+\subsection{The Four Structural Dependencies of Stability}
+
+Stability Bias is embedded in software architecture through four dependency vectors:
+
+\begin{table}[h]
+\centering
+\caption{Structural Dependencies of Stability}
+\label{tab:dependencies}
+\begin{tabular}{ll}
+\toprule
+\textbf{Dependency} & \textbf{Description} \\
+\midrule
+Infrastructure & Reliance on continuous, low-latency network connectivity for authentication, synchronization, or write access \\
+Cognitive & Requirement for sustained executive function to manage permissions, navigation hierarchies, or legal abstractions \\
+Environmental & Assumption of physical privacy and absence of hostile observation during interaction \\
+Resource & Assumption of modern hardware capability, stable electrical power, and unmetered data bandwidth \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Failure across any vector increases $V$, thereby amplifying $H$ in stability-biased systems.
+
+\subsection{The Vulnerability State Machine}
+
+Traditional HCI relies on static personas. Such representations are incompatible with protective design because vulnerability is temporal, not categorical. Protective Computing replaces personas with state-based modeling, representing the user as an agent transitioning within a Vulnerability State Machine (VSM).
+
+\begin{table}[h]
+\centering
+\caption{Vulnerability State Machine}
+\label{tab:vsm}
+\begin{tabular}{llll}
+\toprule
+\textbf{State} & \textbf{Designation} & \textbf{Conditions} & \textbf{System Behavior} \\
+\midrule
+$S_0$ & Stable & Reliable connectivity, cognitive clarity, environmental safety & Full feature availability, active synchronization \\
+$S_1$ & Degraded & Intermittent connectivity, fatigue, moderate stress, public exposure & Conservative Mode: deferred sync, privacy-masked notifications, reduced complexity \\
+$S_2$ & Acute Crisis & Connectivity loss, severe pain or panic, imminent physical or psychological threat & Protective Mode: network ceases, heuristic interface, local read access relaxed \\
+$S_3$ & Coercive & Device inspection or control by hostile third party & Evasion Mode: sensitive data hidden or sealed, duress codes active \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Unidirectional Ratchet Principle:} Protective systems must implement asymmetric transition cost---transition downward into safer states must be effortless; transition upward into more vulnerable states must require deliberate, verifiable confirmation.
+
+\subsection{Taxonomy of Protective Failures}
+
+Protective Computing classifies failure by human consequence rather than technical cause:
+
+\begin{table}[h]
+\centering
+\caption{Taxonomy of Protective Failures}
+\label{tab:failures}
+\begin{tabular}{lll}
+\toprule
+\textbf{Failure Class} & \textbf{Definition} & \textbf{Representative Scenario} \\
+\midrule
+Type I: Denial of Self & System blocks user access to locally owned data due to remote dependency failure & Offline medical history inaccessible because authentication server unreachable \\
+Type II: Involuntary Exposure & System reveals sensitive data without valid contemporaneous consent & Lock-screen notification disclosing private information in coercive environment \\
+Type III: Irreversible Erasure & System permits permanent destruction of critical data during vulnerability state & Accidental global deletion under acute pain with no rollback mechanism \\
+Type IV: Coercive Compliance & System demands action user cannot safely perform & Mandatory biometric authentication while user is restrained or injured \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This taxonomy reframes failure as ethical severity, not merely operational defect.
+
+\section{The Five Protective Design Principles}
+
+To qualify as Protective Architecture, a system MUST implement the following constraints. Normative keywords (MUST, MUST NOT, SHOULD, MAY) are interpreted according to RFC 2119 \cite{IETF1997} and RFC 8174 \cite{Leiba2017}.
+
+\subsection{Principle 1: Radical Reversibility}
+
+\textbf{Formal Definition:} A protective system MUST guarantee that no user action executed within a detected Vulnerability State ($V > 0$) results in immediate or irreversible loss of user data.
+
+\textbf{Threat Model:} A user in cognitive distress ($S_2$) or coercion ($S_3$) executes a destructive command due to panic, confusion, or external pressure.
+
+\textbf{Engineering Constraints:}
+
+\begin{itemize}
+    \item \textbf{Immutable Append-Only Logging:} The persistence layer MUST implement append-only semantics. Logical deletion MUST be represented as a non-destructive cryptographic tombstone.
+    \item \textbf{Restoration Window:} All destructive state transitions MUST remain locally reversible for a minimum configurable duration (RECOMMENDED: $\ge 72$ hours) without administrative or network dependency.
+    \item \textbf{Destructive Friction:} High-impact operations MUST require deliberate, non-trivial confirmation EXCEPT when the system detects imminent physical threat conditions.
+\end{itemize}
+
+\textbf{Architectural Pattern:} Soft-Deletion Protocol --- records marked deleted=true are excluded from default queries yet retained in encrypted storage until explicit, user-authorized garbage collection occurs.
+
+\subsection{Principle 2: Minimum Necessary Exposure (Zero-Knowledge Default)}
+
+\textbf{Formal Definition:} A protective system MUST minimize remote data exposure to the absolute minimum required for local functionality. All remote infrastructure MUST be treated as an untrusted adversarial environment.
+
+\textbf{Threat Model:} Institutional compromise (legal seizure, breach, or insider threat) exposes centrally stored user data.
+
+\textbf{Engineering Constraints:}
+
+\begin{itemize}
+    \item \textbf{Client-Side Encryption:} All user-generated content MUST be encrypted prior to transmission. Servers MUST NOT possess decryption capability.
+    \item \textbf{Metadata Minimization:} Ambient telemetry collection MUST NOT occur unless strictly required for an explicit, user-initiated synchronous function.
+    \item \textbf{Ephemeral Session Semantics:} Sensitive authentication tokens MUST maintain short TTL and MUST NOT persist across reboot without re-verification.
+\end{itemize}
+
+\textbf{Architectural Pattern:} Blind Server Model --- the backend functions solely as a relay for encrypted payloads without semantic visibility.
+
+\subsection{Principle 3: Failure Containment (Local-First Authority)}
+
+\textbf{Formal Definition:} A protective system MUST preserve full read/write capability and data integrity independent of external infrastructure status.
+
+\textbf{Threat Model:} Network, power, or server failure occurs during a safety-critical user interaction.
+
+\textbf{Engineering Constraints:}
+
+\begin{itemize}
+    \item \textbf{Local-First System of Record:} The local database MUST be authoritative. Network services MUST NOT be required for core functionality.
+    \item \textbf{Non-Destructive Conflict Resolution:} Synchronization conflicts MUST preserve all divergent states (e.g., CRDTs or multi-version retention) pending user adjudication.
+    \item \textbf{Optimistic Interface Semantics:} UI state transitions MUST reflect local success immediately, remaining decoupled from network latency or availability.
+\end{itemize}
+
+\subsection{Principle 4: Cognitive Load Preservation}
+
+\textbf{Formal Definition:} Interfaces operating within Vulnerability States ($S_2$, $S_3$) MUST minimize executive function demand and default to heuristic simplicity.
+
+\textbf{Threat Model:} Cognitive overload prevents task completion during crisis conditions.
+
+\textbf{Engineering Constraints:}
+
+\begin{itemize}
+    \item \textbf{Deterministic Crisis Interface Routing:} The view layer MUST support state-dependent rendering characterized by: $\ge 50\%$ reduction in information density; enlarged touch targets and increased contrast; elimination of deep or non-linear navigation paths.
+    \item \textbf{Persistent Interaction State:} Application context MUST survive crashes, termination, and reboot, restoring exact pre-interruption state.
+    \item \textbf{Interrupt Suppression:} Non-critical notifications, prompts, or marketing modals MUST NOT appear during $S_2$ or $S_3$.
+\end{itemize}
+
+\textbf{Architectural Pattern:} Context-Aware View Controller --- global state management routes interaction through vulnerability-specific UI trees.
+
+\subsection{Principle 5: Asymmetric Power Defense}
+
+\textbf{Formal Definition:} Protective systems MUST actively mitigate coercion, surveillance exposure, and vendor lock-in.
+
+\textbf{Threat Model:} Forced device access by hostile actors or institutional restriction of data portability.
+
+\textbf{Engineering Constraints:}
+
+\begin{itemize}
+    \item \textbf{Coercion-Resistant Authentication:} Systems MUST support alternate credentials ("Duress Codes") that trigger protective behaviors: hiding sensitive partitions, presenting neutral data, clearing volatile memory.
+    \item \textbf{Universal Offline Exportability:} Complete user data export in non-proprietary formats (JSON/CSV) MUST be available without server interaction.
+    \item \textbf{Plausible Deniability Storage:} Hidden-volume or steganographic storage SHOULD be implemented where platform capabilities permit.
+\end{itemize}
+
+\textbf{Architectural Pattern:} Panic Protocol --- a rapid, user-triggerable mechanism executes predefined safety routines (encrypted volume unmount, state concealment).
+
+\section{Reference Implementation: PainTracker}
+
+To determine whether Protective Computing is computationally realizable rather than purely theoretical, we constructed PainTracker as a reference implementation according to the Sovereign-Local Stack defined above.
+
+\subsection{Structural Alignment}
+
+\begin{table}[h]
+\centering
+\caption{Structural Alignment: Stability-Centric vs. Protective Architecture}
+\label{tab:alignment}
+\begin{tabular}{lll}
+\toprule
+\textbf{Architectural Dimension} & \textbf{Stability-Centric SaaS} & \textbf{Protective Reference Implementation} \\
+\midrule
+System of Record & Remote relational database & Embedded local database \\
+Identity Authority & Server-validated session & Local cryptographic derivation \\
+Operational Dependency & Network-required & Offline-first \\
+Confidentiality Model & Server-side encryption keys & Client-side encryption keys \\
+Data Portability & Administrative export workflow & Immediate offline structured export \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This alignment demonstrates full conformance with the Sovereign-Local constraint model.
+
+\subsection{Verification of Radical Reversibility}
+
+\textbf{Observed Mechanism:} Symptom entries are stored within an append-only cryptographic log. Deletion events generate tombstone markers while preserving encrypted payloads for a rolling restoration interval ($\ge 72$ hours).
+
+\textbf{Protective Effect:} Erroneous deletion under cognitive impairment ($S_2$) becomes locally reversible without administrative mediation, neutralizing Type III (Irreversible Erasure) harm.
+
+\subsection{Verification of Cognitive Load Preservation}
+
+\textbf{Observed Mechanism:} Activation of a deterministic Flare Mode suspends analytic dashboards, restricts the interface to two binary safety actions, and increases contrast, scale, and navigational linearity.
+
+\textbf{Protective Effect:} Critical interaction remains executable under severely reduced executive function, preserving task completion capability during high-pain states.
+
+\subsection{Verification of Asymmetric Power Defense}
+
+\textbf{Observed Mechanism:} Optional synchronization transmits only AES-256 encrypted payloads. Keys are derived from a user passphrase using Argon2id; where secure hardware is available, derived keys are stored and used within that environment. No keys are ever transmitted.
+
+\textbf{Protective Effect:} Compromise, subpoena, or seizure of remote infrastructure yields computationally inaccessible user data, minimizing the Sovereignty Gap ($\Delta P$) and neutralizing Type II (Involuntary Exposure) harm.
+
+\subsection{Observed Performance Baselines}
+
+Evaluation within high-vulnerability user contexts produced:
+
+\begin{itemize}
+    \item Availability: 100\% under network absence
+    \item Local read/write latency: $< 50$ ms
+    \item Sovereignty Score: 1.0 (complete local cryptographic authority)
+\end{itemize}
+
+These observations derive from controlled testing in development and pilot contexts with approximately two dozen participants over a six-month period. They do not constitute large-scale deployment validation but demonstrate technical feasibility under realistic usage conditions.
+
+\subsection{Empirical Conclusion}
+
+The reference artifact demonstrates that: (1) Failure Containment is technically achievable; (2) Local Sovereignty is operationally sustainable; (3) Protective Computing is implementable within contemporary consumer hardware constraints. The framework thus transitions from normative specification to empirically supported architecture.
+
+\section{The Protective Legitimacy Score (PLS)}
+
+To enable comparative evaluation and potential certification, we introduce a candidate metric: the Protective Legitimacy Score (PLS). This composite index is intended as a starting point for discussion and refinement; its weights and submetrics are provisional and may be adjusted per domain. The PLS is presented as an illustrative proposal, not a validated instrument.
+
+\subsection{Component Metrics}
+
+The PLS aggregates five factors aligned with the five Protective Design Principles, each normalized to [0, 1]:
+
+\begin{table}[h]
+\centering
+\caption{Protective Legitimacy Score Components}
+\label{tab:pls-components}
+\begin{tabular}{lllc}
+\toprule
+\textbf{Metric} & \textbf{Symbol} & \textbf{Principle} & \textbf{Default Weight} \\
+\midrule
+Reversibility Quotient & RQ & Radical Reversibility & 20\% \\
+Exposure Ratio & ER & Minimum Necessary Exposure & 20\% \\
+Local Authority Index & LAI & Failure Containment & 25\% \\
+Cognitive Load Factor & CLF & Cognitive Load Preservation & 15\% \\
+Sovereignty Delta & $\Delta S$ & Asymmetric Power Defense & 20\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Weights are illustrative; domain-specific profiles (e.g., clinical vs. legal vs. consumer) may assign different priorities. The selection and weighting of these components have not been empirically validated and are offered to provoke community discussion.
+
+\subsection{Formal Calculation}
+
+\[
+PLS = 0.2(RQ) + 0.2(1 - ER) + 0.25(LAI) + 0.15(CLF) + 0.2(1 - \Delta S)
+\]
+
+\subsection{Provisional Interpretation}
+
+\begin{itemize}
+    \item \textbf{PLS $\ge 0.85$:} Candidate for Protective Architecture certification after third-party audit
+    \item \textbf{$0.60 \le PLS < 0.85$:} May be acceptable with explicit user warnings and context-specific risk assessment
+    \item \textbf{PLS $< 0.60$:} Likely unsuitable for safety-critical domains
+\end{itemize}
+
+These thresholds are based on preliminary analysis and require validation through empirical studies and regulatory consultation. They should not be interpreted as established standards.
+
+\subsection{Illustrative Calculation: PainTracker (Hypothetical Example)}
+
+To illustrate how the PLS might be calculated, we apply it to the PainTracker reference implementation. The following values are estimates based on the implementation described in Section 5; they have not been independently verified and are presented solely to demonstrate the calculation method.
+
+\begin{table}[h]
+\centering
+\caption{Illustrative PLS Calculation for PainTracker}
+\label{tab:pls-example}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Metric} & \textbf{Estimated Value} & \textbf{Normalized Score} \\
+\midrule
+RQ & 0.95 & 0.95 \\
+ER & 0.05 & $1 - 0.05 = 0.95$ \\
+LAI & 1.00 & 1.00 \\
+CLF & 0.90 & 0.90 \\
+$\Delta S$ & 0.10 & $1 - 0.10 = 0.90$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\[
+PLS = 0.2(0.95) + 0.2(0.95) + 0.25(1.00) + 0.15(0.90) + 0.2(0.90) = 0.945
+\]
+
+This hypothetical calculation suggests that PainTracker would meet the criteria for Protective Architecture if independently audited. The calculation is presented for illustrative purposes only and should not be interpreted as a claim of certification.
+
+\subsection{Limitations and Future Work}
+
+Several important limitations must be acknowledged. The PLS weights and component definitions have not been empirically validated; they reflect the author's judgment and are offered to stimulate discussion. Inter-rater reliability has not been established; different evaluators might assign different scores to the same system. The score does not capture all possible vulnerabilities (e.g., physical side-channel attacks, social engineering, or threats to device integrity). A formal certification would require a third-party audit framework with standardized protocols, trained assessors, and validated instruments.
+
+The PLS is presented as a starting point for community engagement, not as a finished metric. We invite critique, refinement, and empirical validation through future research. The goal is to develop evaluation methods that can inform procurement decisions, regulatory standards, and design practice---but this will require collective effort.
+
+\section{Implications}
+
+\subsection{For Human-Computer Interaction: The End of "Delight"}
+
+For two decades, HCI methodology has prioritized metrics of "delight," "engagement," and "frictionlessness." While appropriate for entertainment, these metrics are unsuited for critical infrastructure. HCI must transition toward safety-critical design, adopting methodologies historically reserved for aviation, nuclear, and medical interfaces. A valid interface is not defined by retention or time-on-site, but by safe exit---the capacity to disengage without harm is co-equal in importance to the capacity to engage. This suggests new evaluation criteria for systems operating in vulnerability contexts: time-to-critical-action, error recovery under stress, and graceful degradation should supplement or replace engagement metrics.
+
+\subsection{For Digital Medicine: Recognizing Digital Iatrogenesis}
+
+In clinical practice, iatrogenesis refers to harm caused by the healer. We formally define Digital Iatrogenesis as harm caused by the rigid architecture of a health application (e.g., a suicide prevention tool mandating password reset during a crisis, a pain tracking application denying access when authentication servers are unreachable). Regulatory bodies including the FDA, Health Canada, and EMA should consider expanding "Software as a Medical Device" (SaMD) classification to include architectural safety. Applications indicated for chronic pain, mental health, or postoperative care may require Protective Audit certification. Failure to provide offline access or local sovereignty could be considered a contraindication for clinical use.
+
+\subsection{For Law: The Doctrine of Digital Duress}
+
+Contract law relies on the "meeting of the minds." No such meeting occurs when one party is an algorithm and the other is a human in a Vulnerability State ($S_2$, $S_3$). Terms of Service agreements or data waivers executed during a detected Crisis State should be legally voidable. Data Duress becomes a defensible legal concept: a user cannot validly consent to surveillance, liability waivers, or data extraction while seeking emergency aid. This has implications for evidentiary standards, consumer protection law, and platform liability.
+
+\section{Research Agenda and Grand Challenges}
+
+The framework establishes axioms, but significant technical barriers remain. We identify three Grand Challenges for the computer science community.
+
+\subsection{Challenge I: The Lost Key Paradox (Cryptographic Usability)}
+
+\textbf{Problem:} Protective Computing mandates Client-Side Encryption (Principle 2). However, users in trauma states ($S_2$) frequently experience memory deficits. Key loss results in catastrophic data loss (Type I Harm). This creates a tension between security and accessibility that cannot be resolved through conventional password management.
+
+\textbf{Research Target:} Development of Social Recovery Protocols that enable key restoration via trusted human contacts (e.g., Shamir's Secret Sharing variants) without exposing keys to central servers or requiring complex technical coordination. Threshold cryptography combined with out-of-band verification may offer paths forward, but usability under stress remains unproven.
+
+\subsection{Challenge II: Biometric Stress Detection Without Surveillance}
+
+\textbf{Problem:} To trigger Crisis Mode automatically, the system requires biometric inference (detecting tremors, erratic input, or interaction patterns indicative of distress). Transmitting this telemetry to the cloud constitutes a privacy violation and creates new surveillance vectors.
+
+\textbf{Research Target:} Optimization of Local-Only Inference Models (TinyML). Algorithms must run entirely on-device to detect stress patterns, ensuring the device understands user state while the vendor remains blind. This requires advances in model compression, energy-efficient inference, and privacy-preserving sensor processing.
+
+\subsection{Challenge III: Offline AI for Vulnerable Contexts}
+
+\textbf{Problem:} Current AI systems (LLMs) rely on massive cloud connectivity. Users in shelters or disaster zones cannot access legal or medical synthesis without exposing queries to corporate surveillance. This creates a dependency that violates Principle 2 (Minimum Necessary Exposure).
+
+\textbf{Research Target:} Optimization of Small Language Models (SLMs) capable of running on consumer hardware to provide legal/medical synthesis offline. Intelligence must become a local utility, not a cloud subscription. This requires advances in model distillation, on-device inference, and domain-specific compression.
+
+\section{Conclusion: From Convenience to Safety}
+
+This paper has argued that the Stability Assumption---the unexamined architectural doctrine that users enjoy continuous connectivity, cognitive surplus, environmental safety, and institutional trust---has silently governed software design for three decades. We have demonstrated that this assumption is structurally incompatible with the material conditions of the 2020s, where human-computer interaction increasingly occurs under vulnerability: medical crisis, environmental disaster, coercion, and precarity.
+
+\subsection{Summary of Contributions}
+
+We introduced Protective Computing as a systems-engineering orientation that inverts conventional priorities, mandating safety, containment, reversibility, and utility over growth and engagement. The framework makes four primary contributions to the literature.
+
+First, we formalized \textbf{Stability Bias} as a function of dependency, vulnerability, and irreversibility ($H = f(D, V, I)$), providing a mathematical basis for analyzing how architectural choices translate into human harm. This formalization extends safety-critical engineering by incorporating the dynamic state of the user as a primary variable.
+
+Second, we defined a \textbf{Vulnerability State Machine} ($S_0$--$S_3$) that replaces static personas with state-based modeling, recognizing that vulnerability is temporal rather than categorical. This enables systems to adapt their behavior as users transition between stable, degraded, acute crisis, and coercive states.
+
+Third, we specified \textbf{five normative design principles} using RFC-style keywords (Radical Reversibility, Minimum Necessary Exposure, Failure Containment, Cognitive Load Preservation, Asymmetric Power Defense). These principles translate ethical commitments into engineering constraints, providing actionable guidance for system architects.
+
+Fourth, we demonstrated technical feasibility through a \textbf{reference implementation} (PainTracker), showing that Protective Computing is realizable within contemporary consumer hardware constraints. The implementation achieved 100\% availability under network absence in controlled testing and complete local cryptographic authority, suggesting that the framework does not impose prohibitive technical overhead.
+
+Finally, we proposed the \textbf{Protective Legitimacy Score (PLS)} as a candidate metric for comparative evaluation and potential certification. The PLS is presented as a starting point for discussion; its weights and thresholds are provisional and require validation through empirical studies and regulatory consultation.
+
+\subsection{Limitations}
+
+Several limitations merit acknowledgment. The PLS has not been empirically validated; inter-rater reliability has not been established, and the score does not capture all possible vulnerabilities (e.g., physical side-channel attacks). The reference implementation, while demonstrating feasibility, has not undergone independent audit or large-scale user testing. State detection mechanisms (distinguishing $S_2$ from $S_3$) remain an open research problem, and the framework's assumptions about device integrity may not hold in all threat models. The framework prioritizes certain values (safety, sovereignty) over others (convenience, engagement); this hierarchy may not be appropriate for all contexts and should be subject to domain-specific adaptation.
+
+\subsection{Open Questions}
+
+The framework raises questions that require community engagement. How should systems balance the competing demands of usability and security in the Lost Key Paradox? Can biometric stress detection be implemented locally without creating new surveillance vectors? What regulatory mechanisms would be appropriate for certifying protective architectures? How should the PLS weights be adjusted for different application domains? These questions are not weaknesses of the framework but rather define a research agenda for the field.
+
+\subsection{A Research Program, Not a Manifesto}
+
+This paper does not claim to have solved the problem of designing for vulnerability. It offers a framework---a set of concepts, formalisms, and principles---that we hope will enable systematic investigation of how software architecture interacts with human safety. Whether Protective Computing becomes a recognized subdiscipline depends not on the persuasiveness of this single paper, but on whether the research community finds the framework useful for generating new questions, new experiments, and new designs.
+
+The history of consumer computing optimized for convenience. The conditions of the present---climate instability, systemic fragility, institutional erosion---suggest that safety can no longer be treated as a secondary concern. We invite the community to refine, critique, and extend the ideas presented here. The goal is not to declare a new orthodoxy, but to open a line of inquiry that has been neglected for too long: how to build systems that protect when users cannot protect themselves.
+
+% Acknowledgments omitted.
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{protective-computing-acmart}
+
+\appendix
+
+\section{Notation Reference}
+
+\begin{table}[h]
+\centering
+\caption{Notation Reference}
+\label{tab:notation}
+\begin{tabular}{ll}
+\toprule
+\textbf{Symbol} & \textbf{Meaning} \\
+\midrule
+$H$ & Total Harm (function of $D, V, I$) \\
+$D$ & System Dependency \\
+$V$ & User Vulnerability \\
+$I$ & Outcome Irreversibility \\
+$S_0$--$S_3$ & Vulnerability States \\
+$P_i$ & Institutional Power \\
+$P_u$ & User Sovereignty \\
+$\Delta P$ & Sovereignty Gap ($P_i - P_u$) \\
+$R$ & Asymmetry Risk \\
+$S$ & Data Sensitivity \\
+PLS & Protective Legitimacy Score \\
+RQ & Reversibility Quotient \\
+ER & Exposure Ratio \\
+LAI & Local Authority Index \\
+CLF & Cognitive Load Factor \\
+$\Delta S$ & Sovereignty Delta \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Audit Framework Dimensions (Preliminary)}
+
+A formal Protective Audit would evaluate:
+
+\begin{enumerate}
+    \item \textbf{Source Code Analysis}
+    \begin{itemize}
+        \item Verification of embedded database authority (Principle 3)
+        \item Confirmation of client-side encryption implementation (Principle 2)
+        \item Inspection of deletion/restoration logic (Principle 1)
+    \end{itemize}
+    \item \textbf{State Transition Testing}
+    \begin{itemize}
+        \item Forced degradation of network, power, and authentication infrastructure
+        \item Observation of system behavior under simulated $S_2$ and $S_3$ conditions
+    \end{itemize}
+    \item \textbf{Exportability Verification}
+    \begin{itemize}
+        \item Attempted offline data export under zero-network conditions
+        \item Validation of non-proprietary format compliance
+    \end{itemize}
+\end{enumerate}
+
+\end{document}
